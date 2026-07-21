@@ -5,7 +5,74 @@ import { demoScenarioId, getScenario, levels, scenariosFor, skillLabels, tracks 
 import type { Difficulty, Scenario, ScenarioOption, Skill, TrackId } from './data/types'
 import './styles.css'
 
-type View = 'home' | 'library' | 'simulator'
+type View = 'home' | 'library' | 'briefing' | 'simulator'
+
+type LessonPrimer = {
+  intro: string
+  objective: string
+  rules: string[]
+  terms: Array<{ term: string; definition: string }>
+}
+
+const firstLessonPrimer: LessonPrimer = {
+  intro: 'You do not need data-center experience for this first lesson. You will practice slowing down an alert, involving the right people, and protecting equipment before anyone changes it.',
+  objective: 'Protect people and the GPU workload by sharing the alarm, checking available backup cooling, and following the approved response.',
+  rules: [
+    'An alarm is information—not an instruction to reset equipment.',
+    'Tell the shift lead and NOC before any change so the team has one shared picture.',
+    'Use the approved response path before touching cooling equipment.',
+  ],
+  terms: [
+    { term: 'NOC', definition: 'The operations team watching alarms and coordinating the response.' },
+    { term: 'CRAC', definition: 'A computer-room air conditioner that sends cool air toward the racks.' },
+    { term: 'N+1', definition: 'One extra backup unit is available if another unit loses capacity.' },
+  ],
+}
+
+const trackPrimers: Record<TrackId, LessonPrimer> = {
+  electrical: {
+    intro: 'This lesson practices how an electrical team thinks before taking action. It is a judgment simulation, not hands-on electrical instruction.',
+    objective: 'Recognize the system boundary, communicate the condition, and use the approved procedure before changing a power path.',
+    rules: [
+      'Never treat a diagram or alarm as permission to operate equipment.',
+      'Verify the power path and notify the people responsible for the load.',
+      'Use site procedures and qualified personnel for any real electrical work.',
+    ],
+    terms: [
+      { term: 'UPS', definition: 'Battery-backed equipment that keeps critical load powered during a power interruption.' },
+      { term: 'One-line', definition: 'A simplified map showing how electrical power flows through a facility.' },
+      { term: 'LOTO', definition: 'Lockout/tagout: a safety process used to control hazardous energy.' },
+    ],
+  },
+  power: {
+    intro: 'This lesson practices power-resilience decisions. You will learn the order of thinking before a UPS, generator, or transfer event is acted on.',
+    objective: 'Protect the critical load by confirming the source, redundancy, and approved response before a power transition.',
+    rules: [
+      'Do not create a second transition while the first condition is still being understood.',
+      'Confirm what is carrying the load before changing a power source.',
+      'Coordinate every power response with the shift lead and operations team.',
+    ],
+    terms: [
+      { term: 'Critical load', definition: 'The servers and systems that must stay powered.' },
+      { term: 'Generator', definition: 'Backup equipment that produces power when utility power is unavailable.' },
+      { term: 'Transfer', definition: 'Moving the load from one power source to another through a controlled process.' },
+    ],
+  },
+  cooling: {
+    intro: 'This lesson practices cooling-system judgment. You will learn to read the whole thermal picture before making a change.',
+    objective: 'Protect temperature margin by checking airflow, liquid flow, and redundancy before acting on a cooling alarm.',
+    rules: [
+      'A temperature alarm is a trend to understand, not a signal to improvise.',
+      'Check the backup path before changing an active cooling unit.',
+      'Keep containment and liquid systems within their approved operating procedure.',
+    ],
+    terms: [
+      { term: 'Containment', definition: 'The barriers that keep cold supply air separate from hot return air.' },
+      { term: 'CDU', definition: 'A coolant distribution unit that manages liquid cooling for high-density equipment.' },
+      { term: 'Thermal margin', definition: 'The safe space between current temperature and the site limit.' },
+    ],
+  },
+}
 
 function Icon({ name }: { name: 'bolt' | 'battery' | 'droplet' | 'arrow' | 'play' | 'shield' | 'signal' | 'book' }) {
   const paths = {
@@ -33,6 +100,16 @@ function displayDifficulty(value: Difficulty) {
   return value === 'Foundation' ? 'Beginner' : value
 }
 
+function levelGuidance(value: Difficulty) {
+  if (value === 'Foundation') return 'Start here · no prior experience required'
+  if (value === 'Intermediate') return 'Build on the basics · complete a beginner lesson first'
+  return 'Advanced practice · review the guide if any term is unfamiliar'
+}
+
+function primerFor(scenario: Scenario) {
+  return scenario.id === demoScenarioId ? firstLessonPrimer : trackPrimers[scenario.trackId]
+}
+
 function App() {
   const [view, setView] = useState<View>('home')
   const [trackId, setTrackId] = useState<TrackId>('electrical')
@@ -52,6 +129,7 @@ function App() {
     [trackId, level],
   )
   const activeNode = activeScenario && nodeId ? activeScenario.nodes[nodeId] : null
+  const lessonPrimer = activeScenario ? primerFor(activeScenario) : null
   const nextNode = activeScenario && selectedChoice ? activeScenario.nodes[selectedChoice.nextId] : null
   const nextStepLabel = nextNode?.kind === 'debrief'
     ? 'your lesson wrap-up'
@@ -76,7 +154,7 @@ function App() {
     requestAnimationFrame(() => mentorResponseRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
   }, [selectedChoice])
 
-  function startScenario(scenario: Scenario) {
+  function prepareScenario(scenario: Scenario, nextView: 'briefing' | 'simulator') {
     setActiveScenario(scenario)
     setTrackId(scenario.trackId)
     setNodeId(scenario.startNodeId)
@@ -84,6 +162,15 @@ function App() {
     setSelectedChoice(null)
     setChoiceCount(0)
     setStrongChoices(0)
+    setView(nextView)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function openLessonBriefing(scenario: Scenario) {
+    prepareScenario(scenario, 'briefing')
+  }
+
+  function startLesson() {
     setView('simulator')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -150,8 +237,8 @@ function App() {
               <h1>Train for the work<br />that <em>cannot</em> go dark.</h1>
               <p className="hero-text">GridForge is an AI-authored, zero-key training simulator for the electrical, power, and cooling careers behind the AI boom.</p>
               <div className="hero-actions">
-                <button className="button button-primary" onClick={() => startScenario(getScenario(demoScenarioId)!)}><Icon name="play" />Begin Lesson 1: GPU cooling alert <Icon name="arrow" /></button>
-                <p className="hero-cta-note">Your first lesson · 8–10 min · No experience needed</p>
+                <button className="button button-primary" onClick={() => openLessonBriefing(getScenario(demoScenarioId)!)}><Icon name="play" />Learn the basics for Lesson 1 <Icon name="arrow" /></button>
+                <p className="hero-cta-note">2-minute primer · Then start your first guided lesson</p>
               </div>
               <div className="proof-row"><span><Icon name="shield" />No account. No API key.</span><span><Icon name="signal" />Zero runtime API calls.</span></div>
             </div>
@@ -210,9 +297,37 @@ function App() {
                   <div className="mission-card-visual"><TechnicalDiagram kind={scenario.diagram} state={index % 2 ? 'stabilize' : 'alarm'} /></div>
                   <p className="mission-duration">{scenario.duration} · {scenario.mentor.split(' · ')[0]}</p>
                   <h3>{scenario.title}</h3><p>{scenario.subtitle}</p>
-                  <button className="mission-start" onClick={() => startScenario(scenario)}>Start lesson <Icon name="arrow" /></button>
+                  <p className="lesson-fit">{levelGuidance(scenario.level)}</p>
+                  <button className="mission-start" onClick={() => openLessonBriefing(scenario)}>Read the lesson guide <Icon name="arrow" /></button>
                 </article>
               ))}
+            </div>
+          </section>
+        </main>
+      )}
+
+      {view === 'briefing' && activeScenario && lessonPrimer && (
+        <main className="briefing-page">
+          <section className="briefing-shell">
+            <div className="briefing-copy">
+              <button className="back-link" onClick={() => setView('library')}>← All lessons</button>
+              <p className="eyebrow"><span className="eyebrow-pulse" />BEFORE YOU DECIDE · {displayDifficulty(activeScenario.level).toUpperCase()}</p>
+              <h1>{activeScenario.id === demoScenarioId ? <>Before Lesson 1,<br /><em>learn the basics.</em></> : <>Before this lesson,<br /><em>get oriented.</em></>}</h1>
+              <p className="briefing-lead">{lessonPrimer.intro}</p>
+              <p className="briefing-level">{levelGuidance(activeScenario.level)}</p>
+              <section className="briefing-objective"><span>YOUR GOAL</span><strong>{lessonPrimer.objective}</strong></section>
+              <button className="button button-primary" onClick={startLesson}><Icon name="play" />I’m ready — start {activeScenario.id === demoScenarioId ? 'Lesson 1' : 'this lesson'} <Icon name="arrow" /></button>
+              <p className="briefing-note">You are not expected to know every term yet. This guide gives you the context you need for the first decision.</p>
+            </div>
+            <div className="briefing-teach">
+              <section className="primer-card">
+                <span>THREE THINGS TO KNOW</span>
+                <ol>{lessonPrimer.rules.map((rule) => <li key={rule}>{rule}</li>)}</ol>
+              </section>
+              <section className="primer-card primer-terms">
+                <span>WORDS YOU’LL SEE</span>
+                <dl>{lessonPrimer.terms.map((item) => <div key={item.term}><dt>{item.term}</dt><dd>{item.definition}</dd></div>)}</dl>
+              </section>
             </div>
           </section>
         </main>
@@ -279,7 +394,7 @@ function App() {
             </section>
           ) : (
             <section className="debrief-layout">
-              <div className="debrief-main"><p className="eyebrow"><span className="eyebrow-pulse" />LESSON COMPLETE · {displayDifficulty(activeScenario.level).toUpperCase()}</p><h1>{activeNode.title}</h1><p className="debrief-lead">{activeNode.lesson}</p><div className="debrief-principle"><span>MASTER PRINCIPLE</span><strong>{activeNode.principle}</strong></div><section className="master-note"><span className="mentor-badge">MV</span><div><p>MENTOR DEBRIEF</p><blockquote>“{activeNode.masterMove}”</blockquote></div></section><div className="debrief-actions"><button className="button button-primary" onClick={() => startScenario(activeScenario)}><Icon name="play" />Run it again</button><button className="button button-quiet" onClick={() => setView('library')}>Choose another lesson <Icon name="arrow" /></button></div><p className="safety-note"><Icon name="shield" />{activeNode.guardrail}</p></div>
+              <div className="debrief-main"><p className="eyebrow"><span className="eyebrow-pulse" />LESSON COMPLETE · {displayDifficulty(activeScenario.level).toUpperCase()}</p><h1>{activeNode.title}</h1><p className="debrief-lead">{activeNode.lesson}</p><div className="debrief-principle"><span>MASTER PRINCIPLE</span><strong>{activeNode.principle}</strong></div><section className="master-note"><span className="mentor-badge">MV</span><div><p>MENTOR DEBRIEF</p><blockquote>“{activeNode.masterMove}”</blockquote></div></section><div className="debrief-actions"><button className="button button-primary" onClick={() => openLessonBriefing(activeScenario)}><Icon name="play" />Run it again</button><button className="button button-quiet" onClick={() => setView('library')}>Choose another lesson <Icon name="arrow" /></button></div><p className="safety-note"><Icon name="shield" />{activeNode.guardrail}</p></div>
               <aside className="debrief-score"><p>LESSON RESULT</p><div className="score-number">{choiceCount ? Math.round((strongChoices / choiceCount) * 100) : 0}<small>%</small></div><span>Recommended response rate</span><div className="score-line" /><p className="score-caption">{strongChoices} recommended responses across {choiceCount} answer attempts.</p></aside>
             </section>
           )}

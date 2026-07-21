@@ -121,6 +121,29 @@ footer { display: flex; justify-content: space-between; gap: 16px; max-width: 14
 .answer-outcome.is-incorrect > div > span { color: #ffbcaf; }
 .answer-outcome strong { display: block; margin-top: 4px; color: #eef8f1; font-size: 15px; }
 .answer-outcome p { margin: 4px 0 0; color: #bad0c5; font-size: 12px; line-height: 1.45; }
+.mission-card > p.lesson-fit { margin: 13px 19px 0; color: #9deec6; font: 600 10px/1.4 "DM Mono", monospace; letter-spacing: .03em; }
+.briefing-page { min-height: calc(100vh - 76px); padding: 72px 44px 112px; }
+.briefing-shell { display: grid; grid-template-columns: minmax(0,.92fr) minmax(420px,1.08fr); gap: 58px; max-width: 1160px; margin: auto; }
+.briefing-copy { max-width: 590px; }
+.briefing-copy .eyebrow { margin-top: 34px; }
+.briefing-copy h1 { margin: 19px 0 20px; color: #eff8f3; font: 700 clamp(3.4rem,6vw,6.2rem)/.94 "Manrope", sans-serif; letter-spacing: -.075em; }
+.briefing-lead { margin: 0; color: #b2c9bf; font-size: 17px; line-height: 1.7; }
+.briefing-level { display: inline-flex; margin: 18px 0 0; border: 1px solid rgba(123,244,191,.27); border-radius: 999px; padding: 8px 11px; color: #9df9c8; background: rgba(63,148,111,.1); font: 600 9px/1.3 "DM Mono", monospace; letter-spacing: .05em; }
+.briefing-objective { display: grid; gap: 9px; margin: 25px 0; padding: 17px 19px; border-left: 2px solid #f4c86f; border-radius: 0 14px 14px 0; background: rgba(244,200,111,.06); }
+.briefing-objective span, .primer-card > span { color: #f2cf82; font: 600 9px/1 "DM Mono", monospace; letter-spacing: .11em; }
+.briefing-objective strong { color: #f0e0b2; font: 700 17px/1.45 "Manrope", sans-serif; letter-spacing: -.025em; }
+.briefing-note { max-width: 510px; margin: 15px 0 0; color: #78958a; font-size: 12px; line-height: 1.5; }
+.briefing-teach { display: grid; gap: 16px; align-content: start; }
+.primer-card { padding: 23px; border: 1px solid rgba(150,232,193,.19); border-radius: 20px; background: linear-gradient(140deg, rgba(31,76,61,.45), rgba(11,29,25,.72)); }
+.primer-card > span { color: #8ef7c0; }
+.primer-card ol { display: grid; gap: 15px; margin: 19px 0 0; padding: 0; list-style: none; counter-reset: primer-rule; }
+.primer-card li { position: relative; min-height: 34px; padding-left: 38px; color: #d0e3d9; font-size: 14px; line-height: 1.55; counter-increment: primer-rule; }
+.primer-card li::before { content: counter(primer-rule); position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid rgba(136,246,188,.45); border-radius: 50%; color: #a4fbce; background: rgba(89,182,131,.12); font: 600 10px/1 "DM Mono", monospace; }
+.primer-terms { background: linear-gradient(140deg, rgba(35,72,81,.35), rgba(11,29,25,.72)); }
+.primer-terms dl { display: grid; gap: 0; margin: 17px 0 0; }
+.primer-terms dl > div { display: grid; grid-template-columns: 106px minmax(0,1fr); gap: 14px; padding: 13px 0; border-top: 1px solid rgba(164,224,196,.12); }
+.primer-terms dt { color: #89e4ff; font: 600 10px/1.4 "DM Mono", monospace; letter-spacing: .08em; }
+.primer-terms dd { margin: 0; color: #b9cec4; font-size: 13px; line-height: 1.5; }
 
 @keyframes pulse { 50% { opacity: .35; transform: scale(.82); } }
 @keyframes float { 50% { transform: translateY(-10px); } }
@@ -133,6 +156,7 @@ footer { display: flex; justify-content: space-between; gap: 16px; max-width: 14
 
 @media (max-width: 1000px) {
   .hero-shell { grid-template-columns: 1fr; padding-top: 70px; }.hero-system-card { max-width: 600px; }.track-grid, .mission-grid { grid-template-columns: repeat(2, 1fr); }.architecture-section, .simulator-layout, .debrief-layout { grid-template-columns: 1fr; }.architecture-flow { max-width: 720px; }.simulation-aside { display: block; max-width: 620px; }.debrief-score { position: static; max-width: 420px; }.debrief-score .skill-radar { display: none; }
+  .briefing-shell { grid-template-columns: 1fr; max-width: 720px; }.briefing-copy { max-width: 660px; }.briefing-teach { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 700px) {
@@ -148,6 +172,18 @@ footer { display: flex; justify-content: space-between; gap: 16px; max-width: 14
   .choice-confirmation-actions .text-button { justify-self: start; }
   .choice-confirmation-actions .button { width: 100%; }
   .next-action { font-size: 12px; }
+}
+
+@media (max-width: 700px) {
+  .briefing-page { padding: 42px 20px 66px; }
+  .briefing-copy .eyebrow { margin-top: 27px; }
+  .briefing-copy h1 { font-size: clamp(3rem,14vw,4.4rem); }
+  .briefing-lead { font-size: 16px; }
+  .briefing-objective { padding: 15px; }
+  .briefing-objective strong { font-size: 16px; }
+  .briefing-teach { grid-template-columns: 1fr; }
+  .primer-card { padding: 18px; }
+  .primer-terms dl > div { grid-template-columns: 1fr; gap: 5px; }
 }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
