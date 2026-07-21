@@ -74,6 +74,8 @@ const trackPrimers: Record<TrackId, LessonPrimer> = {
   },
 }
 
+const missionStripMessage = 'THE SKILLED-LABOR GAP IS A CRITICAL INFRASTRUCTURE GAP.'
+
 function Icon({ name }: { name: 'bolt' | 'battery' | 'droplet' | 'arrow' | 'play' | 'shield' | 'signal' | 'book' }) {
   const paths = {
     bolt: <path d="M13 2 3.7 13h6.8L10 22l10.3-13h-6.8L13 2Z" />,
@@ -250,9 +252,10 @@ function App() {
             </div>
           </section>
 
-          <section className="mission-strip">
-            <p>THE SKILLED-LABOR GAP IS A CRITICAL INFRASTRUCTURE GAP.</p>
-            <p>THE SKILLED-LABOR GAP IS A CRITICAL INFRASTRUCTURE GAP.</p>
+          <section className="mission-strip" aria-label={missionStripMessage}>
+            <div className="mission-strip-track" aria-hidden="true">
+              {Array.from({ length: 6 }, (_, index) => <p key={index}>{missionStripMessage}</p>)}
+            </div>
           </section>
 
           <section className="home-section training-intro">
