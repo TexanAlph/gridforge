@@ -2,7 +2,7 @@
 
 > **Train for the work that cannot go dark.**
 
-GridForge is a free, keyless training simulator for the mission-critical electrical, power, and cooling jobs behind AI data centers. Learners practice realistic branching decisions with a seasoned critical-facilities mentor—without an account, an API key, a backend, or a runtime network call.
+GridForge is a free, keyless training simulator for the mission-critical electrical, power, and cooling jobs behind AI data centers. Learners practice realistic branching decisions with a seasoned critical-facilities mentor—without an account, an API key, a backend, or a runtime data/API call.
 
 ## Why this exists
 
@@ -16,13 +16,14 @@ GridForge addresses a training gap: new facilities workers need repeated practic
 
 ## The experience
 
-- **15 baked-in missions** across three tracks: Data Center Electrical, Power & UPS Systems, and Cooling & Liquid Cooling.
-- **Three levels**: Foundation, Intermediate, and Advanced.
+- **15 baked-in lessons** across three tracks: Data Center Electrical, Power & UPS Systems, and Cooling & Liquid Cooling.
+- **Three learner levels**: Beginner, Intermediate, and Advanced.
 - **Branching decision trees** with realistic consequences, recovery paths, mentor teaching, and debriefs.
 - **Animated native SVG diagrams** for power paths, UPS chains, busways, cooling loops, containment, generators, and CDUs.
-- **Competency matrix** that animates diagnosis, systems knowledge, safety/LOTO, uptime judgment, procedure discipline, and communication as decisions land.
-- **Demo-ready launch path**: one click opens the flagship CRAC airflow / thermal-risk mission.
-- **Offline-ready learner state**: a local service worker caches the static application after the first visit; competency progress is saved only in the browser’s local storage.
+- **Beginner-first primers** that explain key terms, safety boundaries, and the lesson goal before a learner sees a decision.
+- **Clear learning loop**: learners lock in one choice, see an explicit correct/incorrect explanation, and must choose the recommended response before progressing.
+- **Demo-ready launch path**: one click opens the flagship GPU-rack cooling alert lesson.
+- **Offline-ready app shell**: a local service worker caches the static application after the first visit.
 
 ## Keyless architecture
 
@@ -30,9 +31,19 @@ GridForge is deliberately not a live chatbot.
 
 1. **Build time:** GPT-5.6 authored the scenario library, mentor dialogue, outcomes, debriefs, and diagram requirements.
 2. **Bundle time:** Codex built the React experience and packages all authored content in static TypeScript modules.
-3. **Run time:** the app reads local content only. It calls no LLM, API, database, analytics provider, font CDN, or external asset host; its local service worker caches the app shell for offline reuse.
+3. **Run time:** the app reads local content only. It requests no LLM output, API data, database, analytics provider, font CDN, or external asset host; its local service worker caches the app shell for offline reuse.
 
 This makes the product free to host, fast, reliable, privacy-friendly, and honest about where AI is used: AI authors the training material ahead of time; it is not presented as live AI guidance.
+
+## Judge quick start
+
+1. Open the live app: [do-roan.vercel.app](https://do-roan.vercel.app).
+2. Select **Learn the basics for Lesson 1**.
+3. Read the two-minute primer, then select **I’m ready — start Lesson 1**.
+4. Choose a response, lock it in, and review the mentor’s explicit feedback.
+5. If the response is incorrect, select another response; recommended responses unlock the next step and the lesson debrief.
+
+The full source is public at [github.com/TexanAlph/gridforge](https://github.com/TexanAlph/gridforge).
 
 ## Safety note
 
@@ -45,7 +56,7 @@ npm install
 npm run dev
 ```
 
-Create a production bundle and verify its no-runtime-call contract:
+Create a production bundle and verify its no-runtime API/external-resource contract:
 
 ```bash
 npm run build
@@ -56,10 +67,9 @@ npm run verify:keyless
 
 | Path | Purpose |
 | --- | --- |
-| `src/data/sampleScenario.ts` | Deep flagship CRAC thermal-risk demo mission |
-| `src/data/scenarioLibrary.ts` | Static 15-mission library, tracks, and competency labels |
+| `src/data/sampleScenario.ts` | Deep flagship GPU-rack cooling alert lesson |
+| `src/data/scenarioLibrary.ts` | Static 15-lesson library and track metadata |
 | `src/components/TechnicalDiagram.tsx` | Native animated SVG technical diagrams |
-| `src/components/SkillRadar.tsx` | Live competency radar and skill labels |
 | `scripts/verify-keyless.mjs` | Guardrail against runtime API/external-resource use |
 | `BUILD_LOG.md` | Transparent record of AI-authored content and Codex implementation |
 

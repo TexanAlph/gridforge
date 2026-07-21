@@ -8,7 +8,6 @@ const sourceFiles = [
   'src/styles.css',
   'src/data/sampleScenario.ts',
   'src/data/scenarioLibrary.ts',
-  'src/components/SkillRadar.tsx',
   'src/components/TechnicalDiagram.tsx',
 ]
 
