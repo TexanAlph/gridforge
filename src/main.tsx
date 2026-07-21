@@ -41,6 +41,10 @@ function impactText(value: number) {
   return `${value > 0 ? '+' : ''}${value}`
 }
 
+function displayDifficulty(value: Difficulty) {
+  return value === 'Foundation' ? 'Beginner' : value
+}
+
 function App() {
   const [view, setView] = useState<View>('home')
   const [trackId, setTrackId] = useState<TrackId>('electrical')
@@ -63,10 +67,13 @@ function App() {
   const activeNode = activeScenario && nodeId ? activeScenario.nodes[nodeId] : null
   const nextNode = activeScenario && selectedChoice ? activeScenario.nodes[selectedChoice.nextId] : null
   const nextStepLabel = nextNode?.kind === 'debrief'
-    ? 'your mission debrief'
+    ? 'your lesson wrap-up'
     : nextNode?.kind === 'decision'
       ? nextNode.phase.replace(/^\d+\s*·\s*/, '')
       : 'the next step'
+  const currentStepName = activeNode?.kind === 'decision'
+    ? activeNode.phase.replace(/^\d+\s*·\s*/, '')
+    : ''
   const totalStages = activeScenario?.id === demoScenarioId ? 4 : 3
   const phaseNumber = activeNode?.kind === 'decision'
     ? Number(activeNode.phase.match(/^(\d+)/)?.[1] ?? Math.min(choiceCount + 1, totalStages))
@@ -152,7 +159,7 @@ function App() {
         </button>
         <nav className="header-nav" aria-label="Main navigation">
           <button className={view === 'home' ? 'is-active' : ''} onClick={returnHome}>Home</button>
-          <button className={view === 'library' ? 'is-active' : ''} onClick={() => setView('library')}>All missions</button>
+          <button className={view === 'library' ? 'is-active' : ''} onClick={() => setView('library')}>All lessons</button>
         </nav>
         <div className="runtime-proof"><span className="status-dot" />KEYLESS · OFFLINE-READY</div>
       </header>
@@ -166,16 +173,16 @@ function App() {
               <h1>Train for the work<br />that <em>cannot</em> go dark.</h1>
               <p className="hero-text">GridForge is an AI-authored, zero-key training simulator for the electrical, power, and cooling careers behind the AI boom.</p>
               <div className="hero-actions">
-                <button className="button button-primary" onClick={() => startScenario(getScenario(demoScenarioId)!)}><Icon name="play" />Start Mission 01: Aisle 04 alert <Icon name="arrow" /></button>
-                <p className="hero-cta-note">First mission · 8–10 min · Respond to a GPU rack cooling alert</p>
+                <button className="button button-primary" onClick={() => startScenario(getScenario(demoScenarioId)!)}><Icon name="play" />Begin Lesson 1: GPU cooling alert <Icon name="arrow" /></button>
+                <p className="hero-cta-note">Your first lesson · 8–10 min · No experience needed</p>
               </div>
               <div className="proof-row"><span><Icon name="shield" />No account. No API key.</span><span><Icon name="signal" />Zero runtime API calls.</span></div>
             </div>
             <div className="hero-system-card">
-              <div className="system-card-top"><span>LIVE SCENARIO PREVIEW</span><span className="system-live"><i />SIMULATED</span></div>
+              <div className="system-card-top"><span>YOUR FIRST LESSON</span><span className="system-live"><i />SIMULATED</span></div>
               <div className="hero-diagram"><TechnicalDiagram kind="cooling-loop" state="alarm" /></div>
-              <div className="system-alert"><span className="alert-number">04</span><div><strong>Airflow deviation</strong><p>Aisle 04 rack inlets rising</p></div><span className="arrow-glyph">↗</span></div>
-              <div className="system-card-footer"><span>MISSION 01 · FOUNDATION</span><span>08:34 EST.</span></div>
+              <div className="system-alert"><span className="alert-indicator" aria-hidden="true"><i /></span><div><strong>GPU rack cooling alert</strong><p>One aisle is getting warmer</p></div><span className="arrow-glyph">↗</span></div>
+              <div className="system-card-footer"><span>LESSON 1 · BEGINNER</span><span>8–10 MIN</span></div>
             </div>
           </section>
 
@@ -186,7 +193,7 @@ function App() {
 
           <section className="home-section training-intro">
             <div><p className="section-kicker">THE TRAINING FLOOR</p><h2>Mentorship you can<br />practice under pressure.</h2></div>
-            <p className="section-copy">Every mission is a branching job-site simulation. You make the call, see the consequence, hear the mentor’s reasoning, and build judgment that respects both safety and uptime.</p>
+            <p className="section-copy">Every lesson is a branching job-site simulation. You make the call, see the consequence, hear the mentor’s reasoning, and build judgment that respects both safety and uptime.</p>
           </section>
 
           <section className="track-grid home-section">
@@ -196,37 +203,37 @@ function App() {
                 <p className="card-eyebrow">{track.eyebrow}</p>
                 <h3>{track.title}</h3>
                 <p>{track.description}</p>
-                <button onClick={() => { setTrackId(track.id); setLevel('All'); setView('library') }}>View {track.title} missions <Icon name="arrow" /></button>
+                <button onClick={() => { setTrackId(track.id); setLevel('All'); setView('library') }}>View {track.title} lessons <Icon name="arrow" /></button>
               </article>
             ))}
           </section>
 
           <section className="home-section architecture-section">
-            <div className="architecture-copy"><p className="section-kicker">BUILT FOR ACCESS</p><h2>All the intelligence is already in the room.</h2><p>GPT-5.6 authored the mission scenarios, mentor teaching, and branching consequences at build time. GridForge ships that library as static content—so learners can train freely, offline, and without a key.</p></div>
-            <div className="architecture-flow" aria-label="Keyless architecture flow"><div><span>01</span><strong>AI-authored<br />missions</strong><small>Build time</small></div><i /><div><span>02</span><strong>Static scenario<br />library</strong><small>Inside the app</small></div><i /><div><span>03</span><strong>Free learner<br />simulator</strong><small>Zero runtime calls</small></div></div>
+            <div className="architecture-copy"><p className="section-kicker">BUILT FOR ACCESS</p><h2>All the intelligence is already in the room.</h2><p>GPT-5.6 authored the lesson scenarios, mentor teaching, and branching consequences at build time. GridForge ships that library as static content—so learners can train freely, offline, and without a key.</p></div>
+            <div className="architecture-flow" aria-label="Keyless learning flow"><div><span>01</span><strong>AI-authored<br />lessons</strong><small>Build time</small></div><i /><div><span>02</span><strong>Static lesson<br />library</strong><small>Inside the app</small></div><i /><div><span>03</span><strong>Free learner<br />simulator</strong><small>Zero runtime calls</small></div></div>
           </section>
         </main>
       )}
 
       {view === 'library' && (
         <main className="library-page">
-          <section className="library-hero"><p className="eyebrow">ALL MISSIONS · 15 STATIC SIMULATIONS</p><h1>Choose your<br /><em>mission.</em></h1><p>Pick a career track, then choose a Foundation, Intermediate, or Advanced simulation.</p></section>
+          <section className="library-hero"><p className="eyebrow">ALL LESSONS · 15 STATIC SIMULATIONS</p><h1>Choose your<br /><em>lesson.</em></h1><p>Pick a career track, then choose a beginner, intermediate, or advanced simulation.</p></section>
           <section className="library-controls">
             <div className="track-tabs" role="tablist" aria-label="Choose track">
               {tracks.map((track) => <button key={track.id} role="tab" aria-selected={track.id === trackId} className={track.id === trackId ? 'is-selected' : ''} onClick={() => { setTrackId(track.id); setLevel('All') }}><Icon name={track.icon} />{track.title}</button>)}
             </div>
-            <div className="level-tabs" aria-label="Choose level">{(['All', ...levels] as const).map((item) => <button key={item} className={item === level ? 'is-selected' : ''} onClick={() => setLevel(item)}>{item}</button>)}</div>
+            <div className="level-tabs" aria-label="Choose level">{(['All', ...levels] as const).map((item) => <button key={item} className={item === level ? 'is-selected' : ''} onClick={() => setLevel(item)}>{item === 'All' ? item : displayDifficulty(item)}</button>)}</div>
           </section>
           <section className="library-missions">
-            <div className="mission-list-heading"><div><p className="section-kicker">{activeTrack.eyebrow}</p><h2>{activeTrack.title}</h2></div><span>{filteredScenarios.length} missions available</span></div>
+            <div className="mission-list-heading"><div><p className="section-kicker">{activeTrack.eyebrow}</p><h2>{activeTrack.title}</h2></div><span>{filteredScenarios.length} lessons available</span></div>
             <div className="mission-grid">
               {filteredScenarios.map((scenario, index) => (
                 <article className="mission-card" key={scenario.id}>
-                  <div className="mission-card-line"><span>MISSION {String(index + 1).padStart(2, '0')}</span><span className={`level-badge level-${scenario.level.toLowerCase()}`}>{scenario.level}</span></div>
+                  <div className="mission-card-line"><span>LESSON {String(index + 1).padStart(2, '0')}</span><span className={`level-badge level-${scenario.level.toLowerCase()}`}>{displayDifficulty(scenario.level)}</span></div>
                   <div className="mission-card-visual"><TechnicalDiagram kind={scenario.diagram} state={index % 2 ? 'stabilize' : 'alarm'} /></div>
                   <p className="mission-duration">{scenario.duration} · {scenario.mentor.split(' · ')[0]}</p>
                   <h3>{scenario.title}</h3><p>{scenario.subtitle}</p>
-                  <button className="mission-start" onClick={() => startScenario(scenario)}>Start simulation <Icon name="arrow" /></button>
+                  <button className="mission-start" onClick={() => startScenario(scenario)}>Start lesson <Icon name="arrow" /></button>
                 </article>
               ))}
             </div>
@@ -237,17 +244,17 @@ function App() {
       {view === 'simulator' && activeScenario && activeNode && (
         <main className="simulator-page">
           <section className="simulator-header">
-            <button className="back-link" onClick={() => setView('library')}>← All missions</button>
-            <div className="mission-meta"><span>{activeScenario.track}</span><i /> <span>{activeScenario.level}</span><i /> <span>{activeScenario.duration}</span></div>
-            <div className="mission-counter">DECISIONS LOCKED <strong>{choiceCount}</strong></div>
+            <button className="back-link" onClick={() => setView('library')}>← All lessons</button>
+            <div className="mission-meta"><span>{activeScenario.id === demoScenarioId ? 'Lesson 1' : 'Lesson'}</span><i /> <span>{activeScenario.track}</span><i /> <span>{activeScenario.duration}</span></div>
+            <div className="mission-counter">YOUR CHOICES <strong>{choiceCount}</strong></div>
           </section>
           {activeNode.kind === 'decision' ? (
             <section className="simulator-layout">
               <div className="scenario-column">
-                <div className="scenario-title-row"><div><p className="section-kicker">{activeNode.phase}</p><h1>{activeNode.title}</h1></div><span className="mentor-badge">MV</span></div>
+                <div className="scenario-title-row"><div><p className="section-kicker">STEP {stageNumber} · {currentStepName}</p><h1>{activeNode.title}</h1></div><span className="mentor-badge">MV</span></div>
                 {nodeId === activeScenario.startNodeId && <p className="opening-text">{activeScenario.opening}</p>}
-                <section className="mission-progress" aria-label={`Mission stage ${stageNumber} of ${totalStages}`}>
-                  <div><span>MISSION FLOW</span><strong>Stage {stageNumber} of {totalStages}</strong></div>
+                <section className="mission-progress" aria-label={`Lesson step ${stageNumber} of ${totalStages}`}>
+                  <div><span>LESSON PROGRESS</span><strong>Step {stageNumber} of {totalStages}</strong></div>
                   <div className="progress-track"><i style={{ width: `${(stageNumber / totalStages) * 100}%` }} /></div>
                   <p>{selectedChoice ? 'Feedback unlocked — read it, then continue.' : pendingChoice ? 'Choice selected — you can revise it or lock it in.' : 'Start here: select one response card below to proceed.'}</p>
                 </section>
@@ -264,24 +271,24 @@ function App() {
                   <div className="option-list">
                     {activeNode.options.map((option, index) => (
                       <button className={selectedChoice?.id === option.id ? 'option-card is-locked' : pendingChoice?.id === option.id ? 'option-card is-selected' : 'option-card'} disabled={Boolean(selectedChoice)} aria-pressed={pendingChoice?.id === option.id || selectedChoice?.id === option.id} key={option.id} onClick={() => choose(option)}>
-                        <span className="option-index">0{index + 1}</span><span>{option.label}</span><Icon name="arrow" />
+                        <span className="option-selector" aria-hidden="true"><i /></span><span className="option-index">0{index + 1}</span><span className="option-copy">{option.label}</span><Icon name="arrow" />
                       </button>
                     ))}
                   </div>
                 </section>
                 {pendingChoice && !selectedChoice && (
                   <section className="choice-confirmation" aria-live="polite">
-                    <div><span>CHOICE SELECTED · OPTION {pendingChoiceNumber}</span><strong>Review it before you lock it in.</strong><p>You can still pick a different option. Locking reveals the simulated outcome and mentor guidance.</p></div>
+                    <div><span>RESPONSE SELECTED · OPTION {pendingChoiceNumber}</span><strong>Review it before you lock it in.</strong><p>You can still pick a different option. Locking reveals the simulated outcome and mentor guidance.</p></div>
                     <div className="choice-confirmation-actions"><button className="text-button" onClick={() => setPendingChoice(null)}>Clear selection</button><button className="button button-primary" onClick={revealChoice}>Lock in &amp; see feedback <Icon name="arrow" /></button></div>
                   </section>
                 )}
                 {selectedChoice && (
                   <section className="mentor-response" ref={mentorResponseRef} tabIndex={-1} aria-live="polite">
-                    <div className="response-kicker"><span className="response-dot" />ANSWER LOCKED · FEEDBACK READY</div>
+                    <div className="response-kicker"><span className="response-dot" />RESPONSE SAVED · FEEDBACK READY</div>
                     <p className="consequence"><strong>System result:</strong> {selectedChoice.consequence}</p>
                     <blockquote>“{selectedChoice.mentor.replace(/^“|”$/g, '')}”</blockquote>
                     <p className="next-action"><span>NEXT STEP</span>Read the feedback above, then continue to <strong>{nextStepLabel}</strong>.</p>
-                    <div className="response-bottom"><div className="impact-list">{(Object.entries(selectedChoice.impacts) as [Skill, number][]).map(([skill, impact]) => <span className={impact > 0 ? 'impact is-positive' : 'impact is-negative'} key={skill}>{skillLabels[skill]} {impactText(impact)}</span>)}</div><button className="button button-primary" onClick={advance}>{nextNode?.kind === 'debrief' ? 'See mission debrief' : `Continue to ${nextStepLabel}`} <Icon name="arrow" /></button></div>
+                    <div className="response-bottom"><div className="impact-list">{(Object.entries(selectedChoice.impacts) as [Skill, number][]).map(([skill, impact]) => <span className={impact > 0 ? 'impact is-positive' : 'impact is-negative'} key={skill}>{skillLabels[skill]} {impactText(impact)}</span>)}</div><button className="button button-primary" onClick={advance}>{nextNode?.kind === 'debrief' ? 'See lesson wrap-up' : `Continue to ${nextStepLabel}`} <Icon name="arrow" /></button></div>
                   </section>
                 )}
               </div>
@@ -292,8 +299,8 @@ function App() {
             </section>
           ) : (
             <section className="debrief-layout">
-              <div className="debrief-main"><p className="eyebrow"><span className="eyebrow-pulse" />MISSION COMPLETE · {activeScenario.level.toUpperCase()}</p><h1>{activeNode.title}</h1><p className="debrief-lead">{activeNode.lesson}</p><div className="debrief-principle"><span>MASTER PRINCIPLE</span><strong>{activeNode.principle}</strong></div><section className="master-note"><span className="mentor-badge">MV</span><div><p>MENTOR DEBRIEF</p><blockquote>“{activeNode.masterMove}”</blockquote></div></section><div className="debrief-actions"><button className="button button-primary" onClick={() => startScenario(activeScenario)}><Icon name="play" />Run it again</button><button className="button button-quiet" onClick={() => setView('library')}>Choose another mission <Icon name="arrow" /></button></div><p className="safety-note"><Icon name="shield" />{activeNode.guardrail}</p></div>
-              <aside className="debrief-score"><p>MISSION SIGNAL</p><div className="score-number">{choiceCount ? Math.round((strongChoices / choiceCount) * 100) : 0}<small>%</small></div><span>Decision quality</span><div className="score-line" /><p className="score-caption">{strongChoices} strong judgment calls across {choiceCount} decisions.</p><SkillRadar skills={activeScenario.skills} values={competencies} recent={[]} /></aside>
+              <div className="debrief-main"><p className="eyebrow"><span className="eyebrow-pulse" />LESSON COMPLETE · {displayDifficulty(activeScenario.level).toUpperCase()}</p><h1>{activeNode.title}</h1><p className="debrief-lead">{activeNode.lesson}</p><div className="debrief-principle"><span>MASTER PRINCIPLE</span><strong>{activeNode.principle}</strong></div><section className="master-note"><span className="mentor-badge">MV</span><div><p>MENTOR DEBRIEF</p><blockquote>“{activeNode.masterMove}”</blockquote></div></section><div className="debrief-actions"><button className="button button-primary" onClick={() => startScenario(activeScenario)}><Icon name="play" />Run it again</button><button className="button button-quiet" onClick={() => setView('library')}>Choose another lesson <Icon name="arrow" /></button></div><p className="safety-note"><Icon name="shield" />{activeNode.guardrail}</p></div>
+              <aside className="debrief-score"><p>LESSON SCORE</p><div className="score-number">{choiceCount ? Math.round((strongChoices / choiceCount) * 100) : 0}<small>%</small></div><span>Decision quality</span><div className="score-line" /><p className="score-caption">{strongChoices} strong judgment calls across {choiceCount} decisions.</p><SkillRadar skills={activeScenario.skills} values={competencies} recent={[]} /></aside>
             </section>
           )}
         </main>

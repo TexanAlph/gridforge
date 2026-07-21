@@ -6,7 +6,7 @@ export const sampleScenario = {
   trackId: 'electrical',
   level: 'Foundation',
   duration: '8–10 min',
-  title: 'The Warm Aisle at A04',
+  title: 'GPU Rack Cooling Alert',
   subtitle: 'Stabilize an air-cooling fault without turning a warning into an outage.',
   mentor: 'Mara Vale · Master Critical-Facilities Technician',
   diagram: 'cooling-loop',
