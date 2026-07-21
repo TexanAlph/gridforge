@@ -166,8 +166,7 @@ function App() {
               <h1>Train for the work<br />that <em>cannot</em> go dark.</h1>
               <p className="hero-text">GridForge is an AI-authored, zero-key training simulator for the electrical, power, and cooling careers behind the AI boom.</p>
               <div className="hero-actions">
-                <button className="button button-primary" onClick={() => startScenario(getScenario(demoScenarioId)!)}><Icon name="play" />Try the 8-minute demo <Icon name="arrow" /></button>
-                <button className="button button-quiet" onClick={() => setView('library')}><Icon name="book" />Explore training bays</button>
+                <button className="button button-primary" onClick={() => startScenario(getScenario(demoScenarioId)!)}><Icon name="play" />Start the 8-minute demo <Icon name="arrow" /></button>
               </div>
               <div className="proof-row"><span><Icon name="shield" />No account. No API key.</span><span><Icon name="signal" />Zero runtime API calls.</span></div>
             </div>
