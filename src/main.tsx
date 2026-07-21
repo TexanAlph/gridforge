@@ -151,8 +151,8 @@ function App() {
           <span>GRID<span>FORGE</span></span>
         </button>
         <nav className="header-nav" aria-label="Main navigation">
-          <button className={view === 'home' ? 'is-active' : ''} onClick={returnHome}>Mission</button>
-          <button className={view === 'library' ? 'is-active' : ''} onClick={() => setView('library')}>Training bays</button>
+          <button className={view === 'home' ? 'is-active' : ''} onClick={returnHome}>Home</button>
+          <button className={view === 'library' ? 'is-active' : ''} onClick={() => setView('library')}>All missions</button>
         </nav>
         <div className="runtime-proof"><span className="status-dot" />KEYLESS · OFFLINE-READY</div>
       </header>
@@ -166,7 +166,8 @@ function App() {
               <h1>Train for the work<br />that <em>cannot</em> go dark.</h1>
               <p className="hero-text">GridForge is an AI-authored, zero-key training simulator for the electrical, power, and cooling careers behind the AI boom.</p>
               <div className="hero-actions">
-                <button className="button button-primary" onClick={() => startScenario(getScenario(demoScenarioId)!)}><Icon name="play" />Start the 8-minute demo <Icon name="arrow" /></button>
+                <button className="button button-primary" onClick={() => startScenario(getScenario(demoScenarioId)!)}><Icon name="play" />Start Mission 01: Aisle 04 alert <Icon name="arrow" /></button>
+                <p className="hero-cta-note">First mission · 8–10 min · Respond to a GPU rack cooling alert</p>
               </div>
               <div className="proof-row"><span><Icon name="shield" />No account. No API key.</span><span><Icon name="signal" />Zero runtime API calls.</span></div>
             </div>
@@ -195,7 +196,7 @@ function App() {
                 <p className="card-eyebrow">{track.eyebrow}</p>
                 <h3>{track.title}</h3>
                 <p>{track.description}</p>
-                <button onClick={() => { setTrackId(track.id); setLevel('All'); setView('library') }}>Enter training bay <Icon name="arrow" /></button>
+                <button onClick={() => { setTrackId(track.id); setLevel('All'); setView('library') }}>View {track.title} missions <Icon name="arrow" /></button>
               </article>
             ))}
           </section>
@@ -209,7 +210,7 @@ function App() {
 
       {view === 'library' && (
         <main className="library-page">
-          <section className="library-hero"><p className="eyebrow">TRAINING BAYS · 15 STATIC MISSIONS</p><h1>Choose your<br /><em>system.</em></h1><p>Start where you are. Each bay includes Foundation, Intermediate, and Advanced mission paths.</p></section>
+          <section className="library-hero"><p className="eyebrow">ALL MISSIONS · 15 STATIC SIMULATIONS</p><h1>Choose your<br /><em>mission.</em></h1><p>Pick a career track, then choose a Foundation, Intermediate, or Advanced simulation.</p></section>
           <section className="library-controls">
             <div className="track-tabs" role="tablist" aria-label="Choose track">
               {tracks.map((track) => <button key={track.id} role="tab" aria-selected={track.id === trackId} className={track.id === trackId ? 'is-selected' : ''} onClick={() => { setTrackId(track.id); setLevel('All') }}><Icon name={track.icon} />{track.title}</button>)}
@@ -236,7 +237,7 @@ function App() {
       {view === 'simulator' && activeScenario && activeNode && (
         <main className="simulator-page">
           <section className="simulator-header">
-            <button className="back-link" onClick={() => setView('library')}>← Training bays</button>
+            <button className="back-link" onClick={() => setView('library')}>← All missions</button>
             <div className="mission-meta"><span>{activeScenario.track}</span><i /> <span>{activeScenario.level}</span><i /> <span>{activeScenario.duration}</span></div>
             <div className="mission-counter">DECISIONS LOCKED <strong>{choiceCount}</strong></div>
           </section>
@@ -248,18 +249,18 @@ function App() {
                 <section className="mission-progress" aria-label={`Mission stage ${stageNumber} of ${totalStages}`}>
                   <div><span>MISSION FLOW</span><strong>Stage {stageNumber} of {totalStages}</strong></div>
                   <div className="progress-track"><i style={{ width: `${(stageNumber / totalStages) * 100}%` }} /></div>
-                  <p>{selectedChoice ? 'Feedback unlocked — read it, then continue.' : pendingChoice ? 'Choice selected — you can revise it or lock it in.' : 'Read the situation, then select the response you would take.'}</p>
+                  <p>{selectedChoice ? 'Feedback unlocked — read it, then continue.' : pendingChoice ? 'Choice selected — you can revise it or lock it in.' : 'Start here: select one response card below to proceed.'}</p>
                 </section>
                 <div className="reading-strip">{activeNode.systemReadout.map((reading) => <span key={reading}>{reading}</span>)}</div>
                 <p className="situation-text">{activeNode.situation}</p>
                 {nodeId === activeScenario.startNodeId && !selectedChoice && (
                   <section className="how-it-works">
                     <span>HOW THIS SIMULATION WORKS</span>
-                    <ol><li>Read the job-site condition.</li><li>Select the response you would take.</li><li>Revise it if needed, then lock it in.</li><li>Use mentor feedback to continue.</li></ol>
+                    <ol><li>Read the job-site condition.</li><li>Select one response card below.</li><li>Revise it if needed, then lock it in.</li><li>Use mentor feedback to continue.</li></ol>
                   </section>
                 )}
                 <section className="decision-panel">
-                  <div className="decision-label"><span>YOUR CALL</span><p>{activeNode.prompt}</p></div>
+                  <div className="decision-label"><span>{selectedChoice ? 'RESPONSE LOCKED' : pendingChoice ? 'NEXT · REVIEW THEN LOCK YOUR RESPONSE' : 'START HERE · SELECT ONE RESPONSE BELOW TO PROCEED'}</span><p>{activeNode.prompt}</p></div>
                   <div className="option-list">
                     {activeNode.options.map((option, index) => (
                       <button className={selectedChoice?.id === option.id ? 'option-card is-locked' : pendingChoice?.id === option.id ? 'option-card is-selected' : 'option-card'} disabled={Boolean(selectedChoice)} aria-pressed={pendingChoice?.id === option.id || selectedChoice?.id === option.id} key={option.id} onClick={() => choose(option)}>

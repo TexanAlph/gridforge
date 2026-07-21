@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gridforge-static-v3'
+const CACHE_NAME = 'gridforge-static-v4'
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/gridforge-mark.svg']
 
 self.addEventListener('install', (event) => {
