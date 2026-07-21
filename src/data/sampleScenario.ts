@@ -11,7 +11,7 @@ export const sampleScenario = {
   mentor: 'Mara Vale · Master Critical-Facilities Technician',
   diagram: 'cooling-loop',
   opening:
-    'Tuesday, 14:17. You are shadowing the afternoon critical-facilities shift in Hall A, a live GPU data hall. The NOC reports three rack-inlet temperature warnings in Aisle 04. CRAC-04 has a low-supply-airflow alarm. No customer load has tripped, but the aisle serves 48 GPU racks and the room is running near its planned thermal envelope.',
+    'Tuesday, 2:17 PM. You are shadowing the afternoon critical-facilities shift in Hall A, a live GPU data hall. The NOC reports three rack-inlet temperature warnings in Aisle 04. CRAC-04 has a low-supply-airflow alarm. No customer load has tripped, but the aisle serves 48 GPU racks and the room is running near its planned thermal envelope.',
   skills: [
     'diagnosis',
     'coolingFundamentals',
