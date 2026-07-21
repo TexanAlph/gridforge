@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useMemo, useState } from 'react'
+import { StrictMode, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { SkillRadar } from './components/SkillRadar'
 import { TechnicalDiagram } from './components/TechnicalDiagram'
@@ -47,11 +47,13 @@ function App() {
   const [level, setLevel] = useState<Difficulty | 'All'>('All')
   const [activeScenario, setActiveScenario] = useState<Scenario | null>(null)
   const [nodeId, setNodeId] = useState('')
+  const [pendingChoice, setPendingChoice] = useState<ScenarioOption | null>(null)
   const [selectedChoice, setSelectedChoice] = useState<ScenarioOption | null>(null)
   const [choiceCount, setChoiceCount] = useState(0)
   const [strongChoices, setStrongChoices] = useState(0)
   const [competencies, setCompetencies] = useState<Record<Skill, number>>(loadCompetencies)
   const [recentSkills, setRecentSkills] = useState<Skill[]>([])
+  const mentorResponseRef = useRef<HTMLElement | null>(null)
 
   const activeTrack = tracks.find((track) => track.id === trackId) ?? tracks[0]
   const filteredScenarios = useMemo(
@@ -59,15 +61,35 @@ function App() {
     [trackId, level],
   )
   const activeNode = activeScenario && nodeId ? activeScenario.nodes[nodeId] : null
+  const nextNode = activeScenario && selectedChoice ? activeScenario.nodes[selectedChoice.nextId] : null
+  const nextStepLabel = nextNode?.kind === 'debrief'
+    ? 'your mission debrief'
+    : nextNode?.kind === 'decision'
+      ? nextNode.phase.replace(/^\d+\s*·\s*/, '')
+      : 'the next step'
+  const totalStages = activeScenario?.id === demoScenarioId ? 4 : 3
+  const phaseNumber = activeNode?.kind === 'decision'
+    ? Number(activeNode.phase.match(/^(\d+)/)?.[1] ?? Math.min(choiceCount + 1, totalStages))
+    : totalStages
+  const stageNumber = Math.max(1, Math.min(totalStages, phaseNumber))
+  const pendingChoiceNumber = activeNode?.kind === 'decision' && pendingChoice
+    ? String(activeNode.options.findIndex((option) => option.id === pendingChoice.id) + 1).padStart(2, '0')
+    : ''
 
   useEffect(() => {
     window.localStorage.setItem('gridforge-competencies', JSON.stringify(competencies))
   }, [competencies])
 
+  useEffect(() => {
+    if (!selectedChoice) return
+    requestAnimationFrame(() => mentorResponseRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+  }, [selectedChoice])
+
   function startScenario(scenario: Scenario) {
     setActiveScenario(scenario)
     setTrackId(scenario.trackId)
     setNodeId(scenario.startNodeId)
+    setPendingChoice(null)
     setSelectedChoice(null)
     setChoiceCount(0)
     setStrongChoices(0)
@@ -78,6 +100,12 @@ function App() {
 
   function choose(option: ScenarioOption) {
     if (selectedChoice) return
+    setPendingChoice(option)
+  }
+
+  function revealChoice() {
+    if (!pendingChoice) return
+    const option = pendingChoice
     const changedSkills = (Object.entries(option.impacts) as [Skill, number][])
       .filter(([, value]) => value !== 0)
       .map(([skill]) => skill)
@@ -94,11 +122,13 @@ function App() {
       setStrongChoices((count) => count + 1)
     }
     setSelectedChoice(option)
+    setPendingChoice(null)
   }
 
   function advance() {
     if (!selectedChoice) return
     setNodeId(selectedChoice.nextId)
+    setPendingChoice(null)
     setSelectedChoice(null)
     setRecentSkills([])
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -108,6 +138,7 @@ function App() {
     setView('home')
     setActiveScenario(null)
     setNodeId('')
+    setPendingChoice(null)
     setSelectedChoice(null)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -208,31 +239,49 @@ function App() {
           <section className="simulator-header">
             <button className="back-link" onClick={() => setView('library')}>← Training bays</button>
             <div className="mission-meta"><span>{activeScenario.track}</span><i /> <span>{activeScenario.level}</span><i /> <span>{activeScenario.duration}</span></div>
-            <div className="mission-counter">DECISIONS CAPTURED <strong>{choiceCount}</strong></div>
+            <div className="mission-counter">DECISIONS LOCKED <strong>{choiceCount}</strong></div>
           </section>
           {activeNode.kind === 'decision' ? (
             <section className="simulator-layout">
               <div className="scenario-column">
                 <div className="scenario-title-row"><div><p className="section-kicker">{activeNode.phase}</p><h1>{activeNode.title}</h1></div><span className="mentor-badge">MV</span></div>
                 {nodeId === activeScenario.startNodeId && <p className="opening-text">{activeScenario.opening}</p>}
+                <section className="mission-progress" aria-label={`Mission stage ${stageNumber} of ${totalStages}`}>
+                  <div><span>MISSION FLOW</span><strong>Stage {stageNumber} of {totalStages}</strong></div>
+                  <div className="progress-track"><i style={{ width: `${(stageNumber / totalStages) * 100}%` }} /></div>
+                  <p>{selectedChoice ? 'Feedback unlocked — read it, then continue.' : pendingChoice ? 'Choice selected — you can revise it or lock it in.' : 'Read the situation, then select the response you would take.'}</p>
+                </section>
                 <div className="reading-strip">{activeNode.systemReadout.map((reading) => <span key={reading}>{reading}</span>)}</div>
                 <p className="situation-text">{activeNode.situation}</p>
+                {nodeId === activeScenario.startNodeId && !selectedChoice && (
+                  <section className="how-it-works">
+                    <span>HOW THIS SIMULATION WORKS</span>
+                    <ol><li>Read the job-site condition.</li><li>Select the response you would take.</li><li>Revise it if needed, then lock it in.</li><li>Use mentor feedback to continue.</li></ol>
+                  </section>
+                )}
                 <section className="decision-panel">
                   <div className="decision-label"><span>YOUR CALL</span><p>{activeNode.prompt}</p></div>
                   <div className="option-list">
                     {activeNode.options.map((option, index) => (
-                      <button className={selectedChoice?.id === option.id ? 'option-card is-chosen' : 'option-card'} disabled={Boolean(selectedChoice)} key={option.id} onClick={() => choose(option)}>
+                      <button className={selectedChoice?.id === option.id ? 'option-card is-locked' : pendingChoice?.id === option.id ? 'option-card is-selected' : 'option-card'} disabled={Boolean(selectedChoice)} aria-pressed={pendingChoice?.id === option.id || selectedChoice?.id === option.id} key={option.id} onClick={() => choose(option)}>
                         <span className="option-index">0{index + 1}</span><span>{option.label}</span><Icon name="arrow" />
                       </button>
                     ))}
                   </div>
                 </section>
+                {pendingChoice && !selectedChoice && (
+                  <section className="choice-confirmation" aria-live="polite">
+                    <div><span>CHOICE SELECTED · OPTION {pendingChoiceNumber}</span><strong>Review it before you lock it in.</strong><p>You can still pick a different option. Locking reveals the simulated outcome and mentor guidance.</p></div>
+                    <div className="choice-confirmation-actions"><button className="text-button" onClick={() => setPendingChoice(null)}>Clear selection</button><button className="button button-primary" onClick={revealChoice}>Lock in &amp; see feedback <Icon name="arrow" /></button></div>
+                  </section>
+                )}
                 {selectedChoice && (
-                  <section className="mentor-response">
-                    <div className="response-kicker"><span className="response-dot" />DECISION CAPTURED</div>
+                  <section className="mentor-response" ref={mentorResponseRef} tabIndex={-1} aria-live="polite">
+                    <div className="response-kicker"><span className="response-dot" />ANSWER LOCKED · FEEDBACK READY</div>
                     <p className="consequence"><strong>System result:</strong> {selectedChoice.consequence}</p>
                     <blockquote>“{selectedChoice.mentor.replace(/^“|”$/g, '')}”</blockquote>
-                    <div className="response-bottom"><div className="impact-list">{(Object.entries(selectedChoice.impacts) as [Skill, number][]).map(([skill, impact]) => <span className={impact > 0 ? 'impact is-positive' : 'impact is-negative'} key={skill}>{skillLabels[skill]} {impactText(impact)}</span>)}</div><button className="button button-primary" onClick={advance}>Continue <Icon name="arrow" /></button></div>
+                    <p className="next-action"><span>NEXT STEP</span>Read the feedback above, then continue to <strong>{nextStepLabel}</strong>.</p>
+                    <div className="response-bottom"><div className="impact-list">{(Object.entries(selectedChoice.impacts) as [Skill, number][]).map(([skill, impact]) => <span className={impact > 0 ? 'impact is-positive' : 'impact is-negative'} key={skill}>{skillLabels[skill]} {impactText(impact)}</span>)}</div><button className="button button-primary" onClick={advance}>{nextNode?.kind === 'debrief' ? 'See mission debrief' : `Continue to ${nextStepLabel}`} <Icon name="arrow" /></button></div>
                   </section>
                 )}
               </div>
