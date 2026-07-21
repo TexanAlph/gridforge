@@ -132,7 +132,7 @@ footer { display: flex; justify-content: space-between; gap: 16px; max-width: 14
 @keyframes air-hot { from { transform: translate(98px,77px); } to { transform: translate(414px,139px); } }
 
 @media (max-width: 1000px) {
-  .hero-shell { grid-template-columns: 1fr; padding-top: 70px; }.hero-system-card { max-width: 600px; }.track-grid, .mission-grid { grid-template-columns: repeat(2, 1fr); }.architecture-section, .simulator-layout, .debrief-layout { grid-template-columns: 1fr; }.architecture-flow { max-width: 720px; }.simulation-aside { display: grid; grid-template-columns: minmax(0,1fr) minmax(280px, .8fr); }.debrief-score { position: static; max-width: 420px; }.debrief-score .skill-radar { display: none; }
+  .hero-shell { grid-template-columns: 1fr; padding-top: 70px; }.hero-system-card { max-width: 600px; }.track-grid, .mission-grid { grid-template-columns: repeat(2, 1fr); }.architecture-section, .simulator-layout, .debrief-layout { grid-template-columns: 1fr; }.architecture-flow { max-width: 720px; }.simulation-aside { display: block; max-width: 620px; }.debrief-score { position: static; max-width: 420px; }.debrief-score .skill-radar { display: none; }
 }
 
 @media (max-width: 700px) {

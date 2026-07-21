@@ -1,27 +1,11 @@
 import { StrictMode, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { SkillRadar } from './components/SkillRadar'
 import { TechnicalDiagram } from './components/TechnicalDiagram'
 import { demoScenarioId, getScenario, levels, scenariosFor, skillLabels, tracks } from './data/scenarioLibrary'
 import type { Difficulty, Scenario, ScenarioOption, Skill, TrackId } from './data/types'
 import './styles.css'
 
 type View = 'home' | 'library' | 'simulator'
-
-const skillKeys = Object.keys(skillLabels) as Skill[]
-const initialCompetencies = skillKeys.reduce<Record<Skill, number>>((values, skill) => {
-  values[skill] = 18
-  return values
-}, {} as Record<Skill, number>)
-
-function loadCompetencies() {
-  try {
-    const stored = window.localStorage.getItem('gridforge-competencies')
-    return stored ? { ...initialCompetencies, ...JSON.parse(stored) } : initialCompetencies
-  } catch {
-    return initialCompetencies
-  }
-}
 
 function Icon({ name }: { name: 'bolt' | 'battery' | 'droplet' | 'arrow' | 'play' | 'shield' | 'signal' | 'book' }) {
   const paths = {
@@ -59,9 +43,8 @@ function App() {
   const [selectedChoice, setSelectedChoice] = useState<ScenarioOption | null>(null)
   const [choiceCount, setChoiceCount] = useState(0)
   const [strongChoices, setStrongChoices] = useState(0)
-  const [competencies, setCompetencies] = useState<Record<Skill, number>>(loadCompetencies)
-  const [recentSkills, setRecentSkills] = useState<Skill[]>([])
   const mentorResponseRef = useRef<HTMLElement | null>(null)
+  const decisionPanelRef = useRef<HTMLElement | null>(null)
 
   const activeTrack = tracks.find((track) => track.id === trackId) ?? tracks[0]
   const filteredScenarios = useMemo(
@@ -89,10 +72,6 @@ function App() {
   const selectedChoiceIsCorrect = selectedChoice ? choiceScore(selectedChoice) > 0 : false
 
   useEffect(() => {
-    window.localStorage.setItem('gridforge-competencies', JSON.stringify(competencies))
-  }, [competencies])
-
-  useEffect(() => {
     if (!selectedChoice) return
     requestAnimationFrame(() => mentorResponseRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
   }, [selectedChoice])
@@ -105,7 +84,6 @@ function App() {
     setSelectedChoice(null)
     setChoiceCount(0)
     setStrongChoices(0)
-    setRecentSkills([])
     setView('simulator')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -118,17 +96,6 @@ function App() {
   function revealChoice() {
     if (!pendingChoice) return
     const option = pendingChoice
-    const changedSkills = (Object.entries(option.impacts) as [Skill, number][])
-      .filter(([, value]) => value !== 0)
-      .map(([skill]) => skill)
-    setRecentSkills(changedSkills)
-    setCompetencies((current) => {
-      const updated = { ...current }
-      for (const [skill, impact] of Object.entries(option.impacts) as [Skill, number][]) {
-        updated[skill] = Math.max(0, Math.min(100, updated[skill] + impact * 4))
-      }
-      return updated
-    })
     setChoiceCount((count) => count + 1)
     if (choiceScore(option) > 0) {
       setStrongChoices((count) => count + 1)
@@ -138,12 +105,17 @@ function App() {
   }
 
   function advance() {
-    if (!selectedChoice) return
+    if (!selectedChoice || !selectedChoiceIsCorrect) return
     setNodeId(selectedChoice.nextId)
     setPendingChoice(null)
     setSelectedChoice(null)
-    setRecentSkills([])
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function retryQuestion() {
+    setPendingChoice(null)
+    setSelectedChoice(null)
+    requestAnimationFrame(() => decisionPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
   }
 
   function returnHome() {
@@ -268,10 +240,10 @@ function App() {
                 {nodeId === activeScenario.startNodeId && !selectedChoice && (
                   <section className="how-it-works">
                     <span>HOW THIS SIMULATION WORKS</span>
-                    <ol><li>Read the job-site condition.</li><li>Select one response card below.</li><li>Revise it if needed, then lock it in.</li><li>Use mentor feedback to continue.</li></ol>
+                    <ol><li>Read the job-site condition.</li><li>Select one response card below.</li><li>Revise it if needed, then lock it in.</li><li>Choose the recommended response to continue.</li></ol>
                   </section>
                 )}
-                <section className="decision-panel">
+                <section className="decision-panel" ref={decisionPanelRef}>
                   <div className="decision-label"><span>{selectedChoice ? 'RESPONSE LOCKED' : pendingChoice ? 'NEXT · REVIEW THEN LOCK YOUR RESPONSE' : 'START HERE · SELECT ONE RESPONSE BELOW TO PROCEED'}</span><p>{activeNode.prompt}</p></div>
                   <div className="option-list">
                     {activeNode.options.map((option, index) => (
@@ -292,24 +264,23 @@ function App() {
                     <div className="response-kicker"><span className="response-dot" />{selectedChoiceIsCorrect ? 'CORRECT RESPONSE · FEEDBACK READY' : 'INCORRECT RESPONSE · FEEDBACK READY'}</div>
                     <div className={`answer-outcome ${selectedChoiceIsCorrect ? 'is-correct' : 'is-incorrect'}`}>
                       <span className="outcome-icon" aria-hidden="true">{selectedChoiceIsCorrect ? '✓' : '!'}</span>
-                      <div><span>{selectedChoiceIsCorrect ? 'CORRECT' : 'INCORRECT'}</span><strong>{selectedChoiceIsCorrect ? 'You chose the recommended response.' : 'This is not the recommended response.'}</strong><p>{selectedChoiceIsCorrect ? 'This protects safety, evidence, and uptime in the right order.' : 'Read the consequence below to see the risk, then continue with the coached recovery.'}</p></div>
+                      <div><span>{selectedChoiceIsCorrect ? 'CORRECT' : 'INCORRECT'}</span><strong>{selectedChoiceIsCorrect ? 'You chose the recommended response.' : 'This is not the recommended response.'}</strong><p>{selectedChoiceIsCorrect ? 'This protects safety, evidence, and uptime in the right order.' : 'Read the consequence below, then choose a different response for this same step.'}</p></div>
                     </div>
                     <p className="consequence"><strong>System result:</strong> {selectedChoice.consequence}</p>
                     <blockquote>“{selectedChoice.mentor.replace(/^“|”$/g, '')}”</blockquote>
-                    <p className="next-action"><span>NEXT STEP</span>{selectedChoiceIsCorrect ? 'Read the feedback above, then continue to' : 'See why this response was incorrect, then continue to'} <strong>{nextStepLabel}</strong>.</p>
-                    <div className="response-bottom"><div className="impact-list">{(Object.entries(selectedChoice.impacts) as [Skill, number][]).map(([skill, impact]) => <span className={impact > 0 ? 'impact is-positive' : 'impact is-negative'} key={skill}>{skillLabels[skill]} {impactText(impact)}</span>)}</div><button className="button button-primary" onClick={advance}>{nextNode?.kind === 'debrief' ? 'See lesson wrap-up' : `Continue to ${nextStepLabel}`} <Icon name="arrow" /></button></div>
+                    <p className="next-action"><span>NEXT STEP</span>{selectedChoiceIsCorrect ? <>Read the feedback above, then continue to <strong>{nextStepLabel}</strong>.</> : <>To continue, choose the recommended response for this same step.</>}</p>
+                    <div className="response-bottom"><div className="impact-list">{(Object.entries(selectedChoice.impacts) as [Skill, number][]).map(([skill, impact]) => <span className={impact > 0 ? 'impact is-positive' : 'impact is-negative'} key={skill}>{skillLabels[skill]} {impactText(impact)}</span>)}</div><button className="button button-primary" onClick={selectedChoiceIsCorrect ? advance : retryQuestion}>{selectedChoiceIsCorrect ? (nextNode?.kind === 'debrief' ? 'See lesson wrap-up' : `Continue to ${nextStepLabel}`) : 'Choose another response'} <Icon name="arrow" /></button></div>
                   </section>
                 )}
               </div>
               <aside className="simulation-aside">
                 <TechnicalDiagram kind={activeScenario.diagram} state={activeNode.diagramState} />
-                <section className="competency-card"><div className="competency-head"><div><p>YOUR READINESS</p><h2>Competency matrix</h2></div><span>LIVE</span></div><SkillRadar skills={activeScenario.skills} values={competencies} recent={recentSkills} /><div className="competency-list">{activeScenario.skills.map((skill) => <div className={recentSkills.includes(skill) ? 'competency-row is-updating' : 'competency-row'} key={skill}><span>{skillLabels[skill]}</span><strong>{competencies[skill]}<small>%</small></strong></div>)}</div></section>
               </aside>
             </section>
           ) : (
             <section className="debrief-layout">
               <div className="debrief-main"><p className="eyebrow"><span className="eyebrow-pulse" />LESSON COMPLETE · {displayDifficulty(activeScenario.level).toUpperCase()}</p><h1>{activeNode.title}</h1><p className="debrief-lead">{activeNode.lesson}</p><div className="debrief-principle"><span>MASTER PRINCIPLE</span><strong>{activeNode.principle}</strong></div><section className="master-note"><span className="mentor-badge">MV</span><div><p>MENTOR DEBRIEF</p><blockquote>“{activeNode.masterMove}”</blockquote></div></section><div className="debrief-actions"><button className="button button-primary" onClick={() => startScenario(activeScenario)}><Icon name="play" />Run it again</button><button className="button button-quiet" onClick={() => setView('library')}>Choose another lesson <Icon name="arrow" /></button></div><p className="safety-note"><Icon name="shield" />{activeNode.guardrail}</p></div>
-              <aside className="debrief-score"><p>LESSON SCORE</p><div className="score-number">{choiceCount ? Math.round((strongChoices / choiceCount) * 100) : 0}<small>%</small></div><span>Decision quality</span><div className="score-line" /><p className="score-caption">{strongChoices} strong judgment calls across {choiceCount} decisions.</p><SkillRadar skills={activeScenario.skills} values={competencies} recent={[]} /></aside>
+              <aside className="debrief-score"><p>LESSON RESULT</p><div className="score-number">{choiceCount ? Math.round((strongChoices / choiceCount) * 100) : 0}<small>%</small></div><span>Recommended response rate</span><div className="score-line" /><p className="score-caption">{strongChoices} recommended responses across {choiceCount} answer attempts.</p></aside>
             </section>
           )}
         </main>
