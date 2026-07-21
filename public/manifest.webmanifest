@@ -1,0 +1,17 @@
+{
+  "name": "GridForge",
+  "short_name": "GridForge",
+  "description": "Keyless mission-critical data center training.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07100f",
+  "theme_color": "#07100f",
+  "icons": [
+    {
+      "src": "/gridforge-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
