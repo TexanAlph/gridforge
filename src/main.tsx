@@ -41,6 +41,10 @@ function impactText(value: number) {
   return `${value > 0 ? '+' : ''}${value}`
 }
 
+function choiceScore(option: ScenarioOption) {
+  return Object.values(option.impacts).reduce((sum, impact) => sum + impact, 0)
+}
+
 function displayDifficulty(value: Difficulty) {
   return value === 'Foundation' ? 'Beginner' : value
 }
@@ -82,6 +86,7 @@ function App() {
   const pendingChoiceNumber = activeNode?.kind === 'decision' && pendingChoice
     ? String(activeNode.options.findIndex((option) => option.id === pendingChoice.id) + 1).padStart(2, '0')
     : ''
+  const selectedChoiceIsCorrect = selectedChoice ? choiceScore(selectedChoice) > 0 : false
 
   useEffect(() => {
     window.localStorage.setItem('gridforge-competencies', JSON.stringify(competencies))
@@ -125,7 +130,7 @@ function App() {
       return updated
     })
     setChoiceCount((count) => count + 1)
-    if (Object.values(option.impacts).reduce((sum, impact) => sum + impact, 0) > 0) {
+    if (choiceScore(option) > 0) {
       setStrongChoices((count) => count + 1)
     }
     setSelectedChoice(option)
@@ -270,7 +275,7 @@ function App() {
                   <div className="decision-label"><span>{selectedChoice ? 'RESPONSE LOCKED' : pendingChoice ? 'NEXT · REVIEW THEN LOCK YOUR RESPONSE' : 'START HERE · SELECT ONE RESPONSE BELOW TO PROCEED'}</span><p>{activeNode.prompt}</p></div>
                   <div className="option-list">
                     {activeNode.options.map((option, index) => (
-                      <button className={selectedChoice?.id === option.id ? 'option-card is-locked' : pendingChoice?.id === option.id ? 'option-card is-selected' : 'option-card'} disabled={Boolean(selectedChoice)} aria-pressed={pendingChoice?.id === option.id || selectedChoice?.id === option.id} key={option.id} onClick={() => choose(option)}>
+                      <button className={selectedChoice?.id === option.id ? `option-card is-locked ${selectedChoiceIsCorrect ? 'is-correct' : 'is-incorrect'}` : pendingChoice?.id === option.id ? 'option-card is-selected' : 'option-card'} disabled={Boolean(selectedChoice)} aria-pressed={pendingChoice?.id === option.id || selectedChoice?.id === option.id} key={option.id} onClick={() => choose(option)}>
                         <span className="option-selector" aria-hidden="true"><i /></span><span className="option-index">0{index + 1}</span><span className="option-copy">{option.label}</span><Icon name="arrow" />
                       </button>
                     ))}
@@ -283,11 +288,15 @@ function App() {
                   </section>
                 )}
                 {selectedChoice && (
-                  <section className="mentor-response" ref={mentorResponseRef} tabIndex={-1} aria-live="polite">
-                    <div className="response-kicker"><span className="response-dot" />RESPONSE SAVED · FEEDBACK READY</div>
+                  <section className={`mentor-response ${selectedChoiceIsCorrect ? 'is-correct' : 'is-incorrect'}`} ref={mentorResponseRef} tabIndex={-1} aria-live="polite">
+                    <div className="response-kicker"><span className="response-dot" />{selectedChoiceIsCorrect ? 'CORRECT RESPONSE · FEEDBACK READY' : 'INCORRECT RESPONSE · FEEDBACK READY'}</div>
+                    <div className={`answer-outcome ${selectedChoiceIsCorrect ? 'is-correct' : 'is-incorrect'}`}>
+                      <span className="outcome-icon" aria-hidden="true">{selectedChoiceIsCorrect ? '✓' : '!'}</span>
+                      <div><span>{selectedChoiceIsCorrect ? 'CORRECT' : 'INCORRECT'}</span><strong>{selectedChoiceIsCorrect ? 'You chose the recommended response.' : 'This is not the recommended response.'}</strong><p>{selectedChoiceIsCorrect ? 'This protects safety, evidence, and uptime in the right order.' : 'Read the consequence below to see the risk, then continue with the coached recovery.'}</p></div>
+                    </div>
                     <p className="consequence"><strong>System result:</strong> {selectedChoice.consequence}</p>
                     <blockquote>“{selectedChoice.mentor.replace(/^“|”$/g, '')}”</blockquote>
-                    <p className="next-action"><span>NEXT STEP</span>Read the feedback above, then continue to <strong>{nextStepLabel}</strong>.</p>
+                    <p className="next-action"><span>NEXT STEP</span>{selectedChoiceIsCorrect ? 'Read the feedback above, then continue to' : 'See why this response was incorrect, then continue to'} <strong>{nextStepLabel}</strong>.</p>
                     <div className="response-bottom"><div className="impact-list">{(Object.entries(selectedChoice.impacts) as [Skill, number][]).map(([skill, impact]) => <span className={impact > 0 ? 'impact is-positive' : 'impact is-negative'} key={skill}>{skillLabels[skill]} {impactText(impact)}</span>)}</div><button className="button button-primary" onClick={advance}>{nextNode?.kind === 'debrief' ? 'See lesson wrap-up' : `Continue to ${nextStepLabel}`} <Icon name="arrow" /></button></div>
                   </section>
                 )}
