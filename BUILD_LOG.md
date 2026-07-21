@@ -4,6 +4,15 @@
 
 GridForge was built for the OpenAI Build Week Education track as a keyless, static training simulator for mission-critical data-center careers.
 
+## Submission readiness — 2026-07-21
+
+- Created the GridForge Devpost draft with the live-app and repository links,
+  a project description, and accurate GPT-5.6/Codex authorship details.
+- Repaired the production service-worker strategy so a returning learner fetches
+  the newest navigation document while versioned assets remain offline cached.
+- Confirmed the live judge flow: beginner primer → choice selection → explicit
+  correct/incorrect feedback → required recovery before lesson progression.
+
 ## Build-time GPT-5.6 authorship
 
 - Authored the master critical-facilities mentor persona: patient, Socratic, safety-first, and obsessed with uptime.

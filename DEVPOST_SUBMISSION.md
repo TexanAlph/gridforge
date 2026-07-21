@@ -8,6 +8,7 @@
 - **Live app:** https://do-roan.vercel.app
 - **Source:** https://github.com/TexanAlph/gridforge
 - **Built with:** GPT-5.6, Codex, React, TypeScript, Vite, native SVG, and Vercel
+- **Codex `/feedback` Session ID:** `019f8308-d906-7ac3-bc3c-55c373e7294f`
 
 ## Paste-ready project description
 
@@ -44,4 +45,4 @@ No account, API key, or test credentials are required.
 
 - **Public YouTube video URL:** required; upload the finished under-three-minute demo.
 - **Submitter type and country of residence:** enter your legal details exactly.
-- **`/feedback` Codex Session ID:** retrieve it from the Codex session where the core build occurred.
+- **`/feedback` Codex Session ID:** `019f8308-d906-7ac3-bc3c-55c373e7294f`
